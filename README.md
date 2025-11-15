@@ -1,1 +1,1 @@
-# VIPER---snake-game
+# VIPER
