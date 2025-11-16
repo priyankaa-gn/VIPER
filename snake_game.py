@@ -55,7 +55,7 @@ def main(stdscr):
     game_window.box()
 
     # Add a title at the top of the box
-    title = "** VIPER **" 
+    title = "༼ VIPER 🐍..🍎..💣 ༽" 
     title_x = (box_width // 2) - (len(title) // 2)
     game_window.addstr(0, title_x, title)
 
@@ -142,7 +142,7 @@ def main(stdscr):
 
 
         # ---------------- FOOD EATEN ----------------
-        #check if food is eaten 
+        #check if food is eaten
         if head == food or head == [food[0], food[1] + 1]:
             #food disappears automatically as we clear each frame
             #do not pop(), let the snake grow
@@ -168,6 +168,45 @@ def main(stdscr):
         #checks if the snake and bomb coordinates are same
         for by, bx in bombs:
             if head == [by, bx] or head == [by, bx+1]:
+            #------------- OUTRO SCREEN ------------------
+                game_window.clear()
+                game_window.refresh()
+
+                #ASCII art for score
+                score_art = r'''
+                     _______  _______  _______  _______    _______           _______  _______ 
+                    (  ____ \(  ___  )(       )(  ____ \  (  ___  )|\     /|(  ____ \(  ____ )
+                    | (    \/| (   ) || () () || (    \/  | (   ) || )   ( || (    \/| (    )|
+                    | |      | (___) || || || || (__      | |   | || |   | || (__    | (____)|
+                    | | ____ |  ___  || |(_)| ||  __)     | |   | |( (   ) )|  __)   |     __)
+                    | | \_  )| (   ) || |   | || (        | |   | | \ \_/ / | (      | (\ (   
+                    | (___) || )   ( || )   ( || (____/\  | (___) |  \   /  | (____/\| ) \ \__
+                    (_______)|/     \||/     \|(_______/  (_______)   \_/   (_______/|/   \__/
+                                                                                                                                                                                    
+                '''.splitlines()
+                # center the ASCII art
+                start_line = 2  # wherever you want the art to start
+
+                for i, line in enumerate(score_art):
+                    # Clip long lines to prevent overflow
+                    clipped = line[:box_width - 2]
+
+                    try:
+                        game_window.addstr(start_line + i, 2, clipped, curses.color_pair(4))
+                    except curses.error:
+                        pass  # ignore if terminal is too small
+
+                # print the numeric score just below the ASCII art
+                score_text = f"Score : {len(snake) - 3}"
+                x = (box_width // 2) - (len(score_text) // 2)
+                game_window.addstr(start_line + len(score_art) + 2, x, score_text, curses.color_pair(2))
+
+                game_window.refresh()
+                #remove the nodelay to avoid outro vanishing
+                game_window.nodelay(False)
+
+                # wait for user before exiting
+                game_window.getch()
                 return #exits the funtion aka the game
 
         # ---------------- DRAWING ----------------
@@ -178,6 +217,9 @@ def main(stdscr):
         tx = (box_width // 2) - (len(title) // 2)
         game_window.addstr(0, tx, title)
 
+        # ---------- SCORE DRAWING ----------
+        score_text = f"Score: {len(snake) - 3}"
+        game_window.addstr(0, 2, score_text, curses.color_pair(4))
 
          # draw food
         fy, fx = food
