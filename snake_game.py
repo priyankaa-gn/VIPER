@@ -157,12 +157,22 @@ def main(stdscr):
 
         # ---------------- BOMB SPAWNING ----------------
         #random.random() returns a random float between 0.0 and 1.0, if the float is less than 0.02 a bomb appears (2% chance of appaearing)
-        if random.random() < 0.02 and len(bombs) < 8:
-            new_bomb = [
-                random.randint(start_y + 1, start_y + box_height - 2),
-                random.randint(start_x + 1, start_x + box_width - 3)]
-            if new_bomb not in snake and new_bomb != food:
-                bombs.append(new_bomb)    
+        if random.random() < 0.02:  # 2% chance of spawning per frame
+
+            # If bombs reach half capacity (4), randomly remove one to "move" it
+            if len(bombs) >= 4:
+                bombs.pop(random.randint(0, len(bombs)-1))
+
+            # Only allow max 8 bombs at once
+            if len(bombs) < 8:
+                new_bomb = [
+                    random.randint(start_y + 1, start_y + box_height - 2),
+                    random.randint(start_x + 1, start_x + box_width - 3)
+                ]
+
+                # ensure bomb doesn't spawn on snake or food
+                if new_bomb not in snake and new_bomb != food:
+                    bombs.append(new_bomb)     
 
         # ---------------- BOMB COLLISION ----------------
         #checks if the snake and bomb coordinates are same
@@ -170,7 +180,8 @@ def main(stdscr):
             if head == [by, bx] or head == [by, bx+1]:
             #------------- OUTRO SCREEN ------------------
                 game_window.clear()
-                game_window.refresh()
+                game_window.border()
+                game_window.refresh() # to avoid having the score shown on the top right after the game ends
 
                 #ASCII art for score
                 score_art = r'''
@@ -185,29 +196,52 @@ def main(stdscr):
                                                                                                                                                                                     
                 '''.splitlines()
                 # center the ASCII art
-                start_line = 2  # wherever you want the art to start
+                start_line = (box_height // 2) - (len(score_art) // 2) - 3
 
+                # Draw ASCII art with error handling for small terminals
                 for i, line in enumerate(score_art):
-                    # Clip long lines to prevent overflow
-                    clipped = line[:box_width - 2]
-
                     try:
+                        clipped = line[:box_width - 2]  # prevent overflow
                         game_window.addstr(start_line + i, 2, clipped, curses.color_pair(4))
                     except curses.error:
-                        pass  # ignore if terminal is too small
+                        # terminal too small
+                        try:
+                            game_window.addstr(0, 0, "Terminal too small for outro ASCII art!", curses.color_pair(2))
+                        except curses.error:
+                            pass  # worst case, terminal is extremely small
 
-                # print the numeric score just below the ASCII art
+                # Show numeric score below ASCII art
                 score_text = f"Score : {len(snake) - 3}"
                 x = (box_width // 2) - (len(score_text) // 2)
-                game_window.addstr(start_line + len(score_art) + 2, x, score_text, curses.color_pair(2))
+                try:
+                    game_window.addstr(start_line + len(score_art) + 2, x, score_text, curses.color_pair(2))
+                except curses.error:
+                    try:
+                        game_window.addstr(1, 1, "Terminal too small to show score!", curses.color_pair(2))
+                    except curses.error:
+                        pass
+
+                # Show restart instructions
+                instr = "Press [R] to Restart  |  Any other key to Exit"
+                x = (box_width // 2) - (len(instr) // 2)
+                try:
+                    game_window.addstr(start_line + len(score_art) + 4, x, instr, curses.color_pair(4))
+                except curses.error:
+                    try:
+                        game_window.addstr(2, 1, "Terminal too small for instructions!", curses.color_pair(4))
+                    except curses.error:
+                        pass
 
                 game_window.refresh()
                 #remove the nodelay to avoid outro vanishing
                 game_window.nodelay(False)
 
                 # wait for user before exiting
-                game_window.getch()
-                return #exits the funtion aka the game
+                key = game_window.getch()
+                if key in (ord('r'), ord('R')):
+                    return main(stdscr)  # restart the game
+                else:
+                    return  # exit the game
 
         # ---------------- DRAWING ----------------
         game_window.clear()      #to clear the trails left by the snake 
