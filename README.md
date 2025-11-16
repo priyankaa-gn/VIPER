@@ -4,7 +4,7 @@ A modern terminal-based **Snake game** with colorful Unicode characters and dyna
 
 ---
 
-## Features
+## 🧩 Features
 
 - Terminal-based gameplay using Python's `curses` library.
 - Snake, apple 🍎, and bombs 💣 rendered with **Unicode symbols**.
@@ -22,7 +22,7 @@ A modern terminal-based **Snake game** with colorful Unicode characters and dyna
 
 ---
 
-## Screenshots
+## 📸 Screenshots
 
 **Intro:**
 ```
@@ -34,6 +34,13 @@ A modern terminal-based **Snake game** with colorful Unicode characters and dyna
            ╚═══╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝
 
 ```
+## 🎮 Gameplay Preview
+![Snake Game into Screenshot](assets/intro.png)
+
+![Snake Game game window Screenshot](assets/game_window.png)
+
+![Snake Game outro Screenshot](assets/outro.png)
+
 **Gameplay:**
 
 ༼ VIPER 🐍..🍎..💣 ༽
@@ -59,7 +66,7 @@ Press [R] to Restart | Any other key to Exit
 
 ---
 
-## Installation
+## 🛠️ Installation
 
 1. Clone the repository:
 ```bash
@@ -81,7 +88,7 @@ R key: Restart the game after a game over.
 
 Any other key: Exit the game.(during outro)
 
-## Dependencies
+## 📦 Dependencies
 
 Python 3.10+
 

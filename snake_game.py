@@ -14,13 +14,30 @@ import random
     # refresh()
     # Frame ends
 
+# ----------------------------------------------------------
+# MAIN GAME
+# ----------------------------------------------------------
 def main(stdscr):
     curses.curs_set(0) #turns off cursor blinking 
+
+# ---------------- COLORS ----------------
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_GREEN)   # snake
+    curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)     # food
+    curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_BLACK)  # bombs
+    curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)    # border/title
+
     stdscr.clear()   #clears the screen 
     height,width = stdscr.getmaxyx() #gets the dimensions of the terminal window
 
 # ---------------- INTRO ----------------
-    
+    intro_h = height // 2
+    intro_w = width // 2
+    intro_y = (height - intro_h) // 2
+    intro_x = (width - intro_w) // 2
+
+    intro_win = curses.newwin(intro_h, intro_w, intro_y, intro_x)
+    intro_win.box()
     #adding text to the centre of the terminal as an intro
     text = [
         "██╗   ██╗██╗██████╗ ███████╗██████╗", 
@@ -28,15 +45,19 @@ def main(stdscr):
         " ██║   ██║██║██████╔╝█████╗  ██████╔╝",
         " ╚██╗ ██╔╝██║██╔═══╝ ██╔══╝  ██╔══██╗",
         "  ╚████╔╝ ██║██║     ███████╗██║  ██║",
-         "  ╚═══╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝",
+        "   ╚═══╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝",
     ]  
     y_start = (height // 2) - (len(text) // 2)
     for i, line in enumerate(text):
         x = (width // 2) - (len(line) // 2)
         stdscr.addstr(y_start + i, x, line)
 
+    # Fullscreen suggestion
+    fs_msg = "For best experience, use FULLSCREEN"
+    stdscr.addstr(y_start + len(text) + 2, (width // 2) - (len(fs_msg) // 2), fs_msg, curses.A_BOLD)
+
     stdscr.refresh() #refresh to update the screen
-    time.sleep(1)   #pauses the game for 2 sec
+    time.sleep(2.5)   #pauses the game for 2 sec
      
 
 # ---------------- GAME WINDOW ----------------
@@ -74,14 +95,6 @@ def main(stdscr):
     stdscr.nodelay(True)
     # Set a refresh rate (snake movement speed)
     stdscr.timeout(100)  # milliseconds (100ms per frame)
-
-# ---------------- COLORS ----------------
-    curses.start_color()
-    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_GREEN)   # snake
-    curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)     # food
-    curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_BLACK)  # bombs
-    curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)    # border/title
-
 
 # ---------------- INITIAL SNAKE ----------------
     snake = [
@@ -176,8 +189,17 @@ def main(stdscr):
 
         # ---------------- BOMB COLLISION ----------------
         #checks if the snake and bomb coordinates are same
+        # Also triggered when user presses Q to quit
+        quit_pressed = (key in (ord('q'), ord('Q')))
+
+        bomb_hit = False
         for by, bx in bombs:
-            if head == [by, bx] or head == [by, bx+1]:
+            if head == [by, bx] or head == [by, bx + 1]:
+                bomb_hit = True
+                break
+
+        if bomb_hit or quit_pressed:
+
             #------------- OUTRO SCREEN ------------------
                 game_window.clear()
                 game_window.border()
@@ -185,51 +207,39 @@ def main(stdscr):
 
                 #ASCII art for score
                 score_art = r'''
-             _______  _______  _______  _______    _______           _______  _______ 
-            (  ____ \(  ___  )(       )(  ____ \  (  ___  )|\     /|(  ____ \(  ____ )
-            | (    \/| (   ) || () () || (    \/  | (   ) || )   ( || (    \/| (    )|
-            | |      | (___) || || || || (__      | |   | || |   | || (__    | (____)|
-            | | ____ |  ___  || |(_)| ||  __)     | |   | |( (   ) )|  __)   |     __)
-            | | \_  )| (   ) || |   | || (        | |   | | \ \_/ / | (      | (\ (   
-            | (___) || )   ( || )   ( || (____/\  | (___) |  \   /  | (____/\| ) \ \__
-            (_______)|/     \||/     \|(_______/  (_______)   \_/   (_______/|/   \__/                                                                                                
-                '''.splitlines()
-                # center the ASCII art
-                start_line = (box_height // 2) - (len(score_art) // 2) - 3
+                 _______  _______  _______  _______    _______           _______  _______ 
+                (  ____ \(  ___  )(       )(  ____ \  (  ___  )|\     /|(  ____ \(  ____ )
+                | (    \/| (   ) || () () || (    \/  | (   ) || )   ( || (    \/| (    )|
+                | |      | (___) || || || || (__      | |   | || |   | || (__    | (____)|
+                | | ____ |  ___  || |(_)| ||  __)     | |   | |( (   ) )|  __)   |     __)
+                | | \_  )| (   ) || |   | || (        | |   | | \ \_/ / | (      | (\ (   
+                | (___) || )   ( || )   ( || (____/\  | (___) |  \   /  | (____/\| ) \ \__
+                (_______)|/     \||/     \|(_______/  (_______)   \_/   (_______/|/   \__/                                                                                                
+                    '''.splitlines()
+                height_win, width_win = game_window.getmaxyx()
+                ascii_height = len(score_art)
+                ascii_width = max(len(line) for line in score_art)
 
-                # Draw ASCII art with error handling for small terminals
-                for i, line in enumerate(score_art):
-                    try:
-                        clipped = line[:box_width - 2]  # prevent overflow
-                        game_window.addstr(start_line + i, 2, clipped, curses.color_pair(4))
-                    except curses.error:
-                        # terminal too small
-                        try:
-                            game_window.addstr(0, 0, "Terminal too small for outro ASCII art!", curses.color_pair(2))
-                        except curses.error:
-                            pass  # worst case, terminal is extremely small
+                # Determine max number of lines that fit
+                max_lines = height_win - 4  # leave space for score/instructions
+                start_line = max(1, (height_win - min(ascii_height, max_lines)) // 2)
 
-                # Show numeric score below ASCII art
+                # Draw ASCII art, clipped to width and available lines
+                for i, line in enumerate(score_art[:max_lines]):
+                    clipped = line[:width_win - 2]  # leave margin
+                    game_window.addstr(start_line + i, 1, clipped, curses.color_pair(4))
+
+                # Draw numeric score below ASCII
                 score_text = f"Score : {len(snake) - 3}"
-                x = (box_width // 2) - (len(score_text) // 2)
-                try:
-                    game_window.addstr(start_line + len(score_art) + 2, x, score_text, curses.color_pair(2))
-                except curses.error:
-                    try:
-                        game_window.addstr(1, 1, "Terminal too small to show score!", curses.color_pair(2))
-                    except curses.error:
-                        pass
+                score_y = min(start_line + len(score_art), height_win - 3)
+                score_x = max(1, (width_win - len(score_text)) // 2)
+                game_window.addstr(score_y, score_x, score_text, curses.color_pair(2))
 
-                # Show restart instructions
+                # Draw restart instructions
                 instr = "Press [R] to Restart  |  Any other key to Exit"
-                x = (box_width // 2) - (len(instr) // 2)
-                try:
-                    game_window.addstr(start_line + len(score_art) + 4, x, instr, curses.color_pair(4))
-                except curses.error:
-                    try:
-                        game_window.addstr(2, 1, "Terminal too small for instructions!", curses.color_pair(4))
-                    except curses.error:
-                        pass
+                instr_y = min(score_y + 2, height_win - 2)
+                instr_x = max(1, (width_win - len(instr)) // 2)
+                game_window.addstr(instr_y, instr_x, instr, curses.color_pair(4))
 
                 game_window.refresh()
                 #remove the nodelay to avoid outro vanishing
@@ -245,6 +255,10 @@ def main(stdscr):
         # ---------------- DRAWING ----------------
         game_window.clear()      #to clear the trails left by the snake 
         game_window.box()        #to add the box that got erased dur to .clear()
+
+        # Quit message bottom-left
+        quit_msg = "Quit : [Q]"
+        game_window.addstr(box_height - 1, 2, quit_msg, curses.color_pair(4))
 
         # Add title at top of box
         tx = (box_width // 2) - (len(title) // 2)
